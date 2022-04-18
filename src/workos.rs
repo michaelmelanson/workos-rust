@@ -1,5 +1,7 @@
 use url::{ParseError, Url};
 
+use crate::sso::Sso;
+
 pub struct WorkOs {
     base_url: Url,
     api_key: String,
@@ -20,6 +22,10 @@ impl WorkOs {
 
     pub(crate) fn api_key(&self) -> &String {
         &self.api_key
+    }
+
+    pub fn sso(&self) -> Sso {
+        Sso::new(self)
     }
 }
 
