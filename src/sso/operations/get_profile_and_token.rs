@@ -5,9 +5,30 @@ use serde::{Deserialize, Serialize};
 
 use crate::sso::{Profile, Sso};
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct ClientId(String);
+
+impl Display for ClientId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for ClientId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&str> for ClientId {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
-    pub client_id: &'a str,
+    pub client_id: &'a ClientId,
     pub code: &'a str,
 }
 
@@ -58,10 +79,10 @@ impl<'a> GetProfileAndToken for Sso<'a> {
         let client = reqwest::Client::new();
         let url = self.workos.base_url().join("/sso/token")?;
         let params = [
-            ("client_id", client_id),
+            ("client_id", &client_id.0),
             ("client_secret", self.workos.api_key()),
-            ("grant_type", "authorization_code"),
-            ("code", code),
+            ("grant_type", &"authorization_code".to_string()),
+            ("code", &code.to_string()),
         ];
         let response = client.post(url).form(&params).send().await?;
         let get_profile_and_token_response = response.json::<GetProfileAndTokenResponse>().await?;
@@ -120,7 +141,7 @@ mod test {
         let response = workos
             .sso()
             .get_profile_and_token(&GetProfileAndTokenOptions {
-                client_id: "client_1234",
+                client_id: &ClientId::from("client_1234"),
                 code: "abc123",
             })
             .await
