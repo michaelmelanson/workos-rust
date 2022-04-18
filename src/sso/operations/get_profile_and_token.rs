@@ -1,56 +1,14 @@
-use std::{error::Error, fmt::Display};
+use std::error::Error;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-use crate::sso::{Profile, Sso};
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ClientId(String);
-
-impl Display for ClientId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<String> for ClientId {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-
-impl From<&str> for ClientId {
-    fn from(value: &str) -> Self {
-        Self(value.to_string())
-    }
-}
+use crate::sso::{AccessToken, ClientId, Profile, Sso};
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
     pub client_id: &'a ClientId,
     pub code: &'a str,
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct AccessToken(String);
-
-impl Display for AccessToken {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl From<String> for AccessToken {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-
-impl From<&str> for AccessToken {
-    fn from(value: &str) -> Self {
-        Self(value.to_string())
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -79,7 +37,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
         let client = reqwest::Client::new();
         let url = self.workos.base_url().join("/sso/token")?;
         let params = [
-            ("client_id", &client_id.0),
+            ("client_id", &client_id.to_string()),
             ("client_secret", self.workos.api_key()),
             ("grant_type", &"authorization_code".to_string()),
             ("code", &code.to_string()),
