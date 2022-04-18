@@ -1,7 +1,7 @@
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use async_trait::async_trait;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::sso::{Profile, Sso};
 
@@ -11,9 +11,30 @@ pub struct GetProfileAndTokenOptions<'a> {
     pub code: &'a str,
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct AccessToken(String);
+
+impl Display for AccessToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for AccessToken {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&str> for AccessToken {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
 #[derive(Debug, Deserialize)]
 pub struct GetProfileAndTokenResponse {
-    pub access_token: String,
+    pub access_token: AccessToken,
     pub profile: Profile,
 }
 
@@ -105,6 +126,10 @@ mod test {
             .await
             .unwrap();
 
+        assert_eq!(
+            response.access_token,
+            AccessToken::from("01DMEK0J53CVMC32CK5SE0KZ8Q")
+        );
         assert_eq!(response.profile.id, "prof_01DMC79VCBZ0NY2099737PSVF1")
     }
 }

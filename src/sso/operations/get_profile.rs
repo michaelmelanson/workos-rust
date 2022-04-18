@@ -2,26 +2,16 @@ use std::error::Error;
 
 use async_trait::async_trait;
 
-use crate::sso::{Profile, Sso};
-
-pub struct GetProfileOptions<'a> {
-    pub access_token: &'a str,
-}
+use crate::sso::{AccessToken, Profile, Sso};
 
 #[async_trait]
 pub trait GetProfile {
-    async fn get_profile(&self, options: &GetProfileOptions<'_>)
-        -> Result<Profile, Box<dyn Error>>;
+    async fn get_profile(&self, access_token: &AccessToken) -> Result<Profile, Box<dyn Error>>;
 }
 
 #[async_trait]
 impl<'a> GetProfile for Sso<'a> {
-    async fn get_profile(
-        &self,
-        options: &GetProfileOptions<'_>,
-    ) -> Result<Profile, Box<dyn Error>> {
-        let &GetProfileOptions { access_token } = options;
-
+    async fn get_profile(&self, access_token: &AccessToken) -> Result<Profile, Box<dyn Error>> {
         let client = reqwest::Client::new();
         let url = self.workos.base_url().join("/sso/profile")?;
         let response = client.get(url).bearer_auth(access_token).send().await?;
@@ -69,9 +59,7 @@ mod test {
 
         let profile = workos
             .sso()
-            .get_profile(&GetProfileOptions {
-                access_token: "01DMEK0J53CVMC32CK5SE0KZ8Q",
-            })
+            .get_profile(&AccessToken::from("01DMEK0J53CVMC32CK5SE0KZ8Q"))
             .await
             .unwrap();
 
