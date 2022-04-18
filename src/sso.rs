@@ -23,7 +23,7 @@ pub enum ConnectionSelector<'a> {
 
 #[derive(Debug)]
 pub struct GetAuthorizationUrlOptions<'a> {
-    pub client_id: &'a str,
+    pub client_id: &'a ClientId,
     pub redirect_uri: &'a str,
     pub connection_selector: ConnectionSelector<'a>,
     pub state: Option<&'a str>,
@@ -53,9 +53,11 @@ impl<'a> Sso<'a> {
         } = options;
 
         let query = {
+            let client_id = client_id.to_string();
+
             let mut query_params: querystring::QueryParams = vec![
                 ("response_type", "code"),
-                ("client_id", client_id),
+                ("client_id", &client_id),
                 ("redirect_uri", redirect_uri),
                 match connection_selector {
                     ConnectionSelector::Connection(connection_id) => ("connection", connection_id),
@@ -95,7 +97,7 @@ mod test {
 
         let authorization_url = workos_sso
             .get_authorization_url(&GetAuthorizationUrlOptions {
-                client_id: "client_123456789",
+                client_id: &ClientId::from("client_123456789"),
                 redirect_uri: "https://your-app.com/callback",
                 connection_selector: ConnectionSelector::Connection("conn_1234"),
                 state: None,
@@ -118,7 +120,7 @@ mod test {
 
         let authorization_url = workos_sso
             .get_authorization_url(&GetAuthorizationUrlOptions {
-                client_id: "client_123456789",
+                client_id: &ClientId::from("client_123456789"),
                 redirect_uri: "https://your-app.com/callback",
                 connection_selector: ConnectionSelector::Organization("org_1234"),
                 state: None,
@@ -141,7 +143,7 @@ mod test {
 
         let authorization_url = workos_sso
             .get_authorization_url(&GetAuthorizationUrlOptions {
-                client_id: "client_123456789",
+                client_id: &ClientId::from("client_123456789"),
                 redirect_uri: "https://your-app.com/callback",
                 connection_selector: ConnectionSelector::Provider(&Provider::GoogleOauth),
                 state: None,
