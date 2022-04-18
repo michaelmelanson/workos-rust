@@ -91,11 +91,6 @@ mod test {
 
     use super::ConnectionType;
 
-    #[derive(Serialize)]
-    struct Wrapper {
-        r#type: ConnectionType,
-    }
-
     #[test]
     fn it_properly_serializes_adp_oidc() {
         assert_eq!(
