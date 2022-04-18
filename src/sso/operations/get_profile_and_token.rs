@@ -48,3 +48,63 @@ impl<'a> GetProfileAndToken for Sso<'a> {
         Ok(get_profile_and_token_response)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::WorkOs;
+
+    use super::*;
+
+    use mockito::{self, mock, Matcher};
+    use serde_json::json;
+    use tokio;
+
+    #[tokio::test]
+    async fn it_calls_the_token_endpoint() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("POST", "/sso/token")
+            .match_body(Matcher::AllOf(vec![
+                Matcher::UrlEncoded("client_id".to_string(), "client_1234".to_string()),
+                Matcher::UrlEncoded(
+                    "client_secret".to_string(),
+                    "sk_example_123456789".to_string(),
+                ),
+                Matcher::UrlEncoded("grant_type".to_string(), "authorization_code".to_string()),
+                Matcher::UrlEncoded("code".to_string(), "abc123".to_string()),
+            ]))
+            .with_status(200)
+            .with_body(
+                json!({
+                  "access_token": "01DMEK0J53CVMC32CK5SE0KZ8Q",
+                  "profile": {
+                    "id": "prof_01DMC79VCBZ0NY2099737PSVF1",
+                    "connection_id": "conn_01E4ZCR3C56J083X43JQXF3JK5",
+                    "connection_type": "okta",
+                    "email": "todd@foo-corp.com",
+                    "first_name": "Todd",
+                    "idp_id": "00u1a0ufowBJlzPlk357",
+                    "last_name": "Rundgren",
+                    "object": "profile",
+                    "raw_attributes": {}
+                  }
+                })
+                .to_string(),
+            )
+            .create();
+
+        let response = workos
+            .sso()
+            .get_profile_and_token(&GetProfileAndTokenOptions {
+                client_id: "client_1234",
+                code: "abc123",
+            })
+            .await
+            .unwrap();
+
+        assert_eq!(response.profile.id, "prof_01DMC79VCBZ0NY2099737PSVF1")
+    }
+}

@@ -13,3 +13,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 querystring = "1.1"
 url = "2.2"
+
+[dev-dependencies]
+mockito = "0.31"
+tokio = { version = "1.0", default-features = false, features = ["macros", "rt-multi-thread"] }
