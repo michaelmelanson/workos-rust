@@ -1,25 +1,14 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-use crate::sso::Sso;
+use crate::sso::{Profile, Sso};
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
     pub client_id: &'a str,
     pub code: &'a str,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Profile {
-    pub id: String,
-    pub object: String,
-    pub connection_type: String,
-    pub idp_id: String,
-    pub email: String,
-    pub first_name: String,
-    pub last_name: String,
 }
 
 #[derive(Debug, Deserialize)]

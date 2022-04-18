@@ -1,6 +1,8 @@
-mod get_profile_and_token;
+mod operations;
+mod types;
 
-pub use get_profile_and_token::*;
+pub use operations::*;
+pub use types::*;
 
 use url::{ParseError, Url};
 
