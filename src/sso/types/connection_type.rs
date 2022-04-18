@@ -86,7 +86,6 @@ pub enum ConnectionType {
 
 #[cfg(test)]
 mod test {
-    use serde::Serialize;
     use serde_json::json;
 
     use super::ConnectionType;
