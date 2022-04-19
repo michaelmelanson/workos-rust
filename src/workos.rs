@@ -1,6 +1,6 @@
 use url::{ParseError, Url};
 
-use crate::sso::Sso;
+use crate::{organizations::Organizations, sso::Sso};
 
 pub struct WorkOs {
     base_url: Url,
@@ -27,6 +27,10 @@ impl WorkOs {
 
     pub(crate) fn client(&self) -> &reqwest::Client {
         &self.client
+    }
+
+    pub fn organizations(&self) -> Organizations {
+        Organizations::new(self)
     }
 
     pub fn sso(&self) -> Sso {

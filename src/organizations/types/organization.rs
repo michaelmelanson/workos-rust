@@ -22,3 +22,41 @@ impl From<&str> for OrganizationId {
         Self(value.to_string())
     }
 }
+
+/// [WorkOS Docs: Organization](https://workos.com/docs/reference/organization)
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Organization {
+    pub object: String,
+    pub id: OrganizationId,
+    pub name: String,
+    pub allow_profiles_outside_organization: bool,
+    pub domains: Vec<OrganizationDomain>,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct OrganizationDomainId(String);
+
+impl Display for OrganizationDomainId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for OrganizationDomainId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&str> for OrganizationDomainId {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct OrganizationDomain {
+    pub object: String,
+    pub id: OrganizationDomainId,
+    pub domain: String,
+}
