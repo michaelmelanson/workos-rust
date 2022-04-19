@@ -6,6 +6,9 @@ use crate::sso::{Connection, ConnectionId, Sso};
 
 #[async_trait]
 pub trait GetConnection {
+    /// Retrieves a [`Connection`] by its ID.
+    ///
+    /// [WorkOS Docs: Get a Connection](https://workos.com/docs/reference/sso/connection/get)
     async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, Box<dyn Error>>;
 }
 
