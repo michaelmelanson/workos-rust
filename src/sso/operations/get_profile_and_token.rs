@@ -3,12 +3,12 @@ use std::error::Error;
 use async_trait::async_trait;
 use serde::Deserialize;
 
-use crate::sso::{AccessToken, ClientId, Profile, Sso};
+use crate::sso::{AccessToken, AuthorizationCode, ClientId, Profile, Sso};
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
     pub client_id: &'a ClientId,
-    pub code: &'a str,
+    pub code: &'a AuthorizationCode,
 }
 
 #[derive(Debug, Deserialize)]
@@ -100,7 +100,7 @@ mod test {
             .sso()
             .get_profile_and_token(&GetProfileAndTokenOptions {
                 client_id: &ClientId::from("client_1234"),
-                code: "abc123",
+                code: &AuthorizationCode::from("abc123"),
             })
             .await
             .unwrap();
