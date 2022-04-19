@@ -81,7 +81,7 @@ pub enum ConnectionType {
     SimpleSamlPhpSaml,
 
     #[serde(rename = "VMwareSAML")]
-    VMwareSaml,
+    VmwareSaml,
 }
 
 #[cfg(test)]
