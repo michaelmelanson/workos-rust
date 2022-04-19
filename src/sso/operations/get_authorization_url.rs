@@ -24,6 +24,9 @@ pub struct GetAuthorizationUrlOptions<'a> {
 }
 
 pub trait GetAuthorizationUrl {
+    /// Returns an authorization URL to use to initiate SSO.
+    ///
+    /// [WorkOS Docs: Get Authorization URL](https://workos.com/docs/reference/sso/authorize/get)
     fn get_authorization_url(
         &self,
         options: &GetAuthorizationUrlOptions,
@@ -31,9 +34,6 @@ pub trait GetAuthorizationUrl {
 }
 
 impl<'a> GetAuthorizationUrl for Sso<'a> {
-    /// Returns an authorization URL to use to initiate SSO.
-    ///
-    /// [WorkOS Docs: Get Authorization URL](https://workos.com/docs/reference/sso/authorize/get)
     fn get_authorization_url(
         &self,
         options: &GetAuthorizationUrlOptions,
