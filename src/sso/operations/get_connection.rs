@@ -6,22 +6,16 @@ use crate::sso::{Connection, ConnectionId, Sso};
 
 #[async_trait]
 pub trait GetConnection {
-    async fn get_connection(
-        &self,
-        connection_id: &ConnectionId,
-    ) -> Result<Connection, Box<dyn Error>>;
+    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, Box<dyn Error>>;
 }
 
 #[async_trait]
 impl<'a> GetConnection for Sso<'a> {
-    async fn get_connection(
-        &self,
-        connection_id: &ConnectionId,
-    ) -> Result<Connection, Box<dyn Error>> {
-        let url = self.workos.base_url().join(&format!(
-            "/connections/{connection_id}",
-            connection_id = connection_id
-        ))?;
+    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, Box<dyn Error>> {
+        let url = self
+            .workos
+            .base_url()
+            .join(&format!("/connections/{id}", id = id))?;
         let response = self
             .workos
             .client()
