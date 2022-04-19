@@ -1,0 +1,114 @@
+use std::error::Error;
+
+use async_trait::async_trait;
+
+use crate::sso::{Connection, ConnectionType, Sso};
+use crate::{KnownOrUnknown, PaginatedList};
+
+#[derive(Debug)]
+pub struct ListConnectionsOptions<'a> {
+    pub r#type: &'a Option<KnownOrUnknown<ConnectionType, String>>,
+}
+
+impl<'a> Default for ListConnectionsOptions<'a> {
+    fn default() -> Self {
+        Self { r#type: &None }
+    }
+}
+
+#[async_trait]
+pub trait ListConnections {
+    /// Retrieves a list of [`Connection`]s.
+    ///
+    /// [WorkOS Docs: List Connections](https://workos.com/docs/reference/sso/connection/list)
+    async fn list_connections(
+        &self,
+        options: &ListConnectionsOptions<'_>,
+    ) -> Result<PaginatedList<Connection>, Box<dyn Error>>;
+}
+
+#[async_trait]
+impl<'a> ListConnections for Sso<'a> {
+    async fn list_connections(
+        &self,
+        options: &ListConnectionsOptions<'_>,
+    ) -> Result<PaginatedList<Connection>, Box<dyn Error>> {
+        let url = self.workos.base_url().join("/connections")?;
+        let response = self
+            .workos
+            .client()
+            .get(url)
+            .bearer_auth(self.workos.api_key())
+            .send()
+            .await?;
+        let list_connections_response = response.json::<PaginatedList<Connection>>().await?;
+
+        Ok(list_connections_response)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::WorkOs;
+
+    use super::*;
+
+    use mockito::{self, mock};
+    use serde_json::json;
+    use tokio;
+
+    #[tokio::test]
+    async fn it_calls_the_list_connections_endpoint() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("GET", "/connections")
+            .match_header("Authorization", "Bearer sk_example_123456789")
+            .with_status(200)
+            .with_body(
+                json!({
+                  "data": [
+                    {
+                      "object": "connection",
+                      "id": "conn_01E4ZCR3C56J083X43JQXF3JK5",
+                      "organization_id": "org_01EHWNCE74X7JSDV0X3SZ3KJNY",
+                      "connection_type": "GoogleOAuth",
+                      "name": "Foo Corp",
+                      "state": "active",
+                      "created_at": "2021-06-25T19:07:33.155Z",
+                      "updated_at": "2021-06-25T19:08:33.155Z"
+                    },
+                    {
+                      "object": "connection",
+                      "id": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
+                      "organization_id": "org_01EHWNCE74X7JSDV0X3SZ3KJNY",
+                      "connection_type": "OktaSAML",
+                      "name": "Example Co",
+                      "state": "active",
+                      "created_at": "2021-06-25T19:09:33.155Z",
+                      "updated_at": "2021-06-25T19:10:33.155Z"
+                    }
+                  ],
+                  "list_metadata": {
+                    "before": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
+                    "after": null
+                  }
+                })
+                .to_string(),
+            )
+            .create();
+
+        let paginated_list = workos
+            .sso()
+            .list_connections(&Default::default())
+            .await
+            .unwrap();
+
+        assert_eq!(
+            paginated_list.metadata.before,
+            Some("prof_01DMC79VCBZ0NY2099737PSVF1".to_string())
+        )
+    }
+}
