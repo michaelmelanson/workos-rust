@@ -34,7 +34,6 @@ impl<'a> GetProfileAndToken for Sso<'a> {
     ) -> Result<GetProfileAndTokenResponse, Box<dyn Error>> {
         let &GetProfileAndTokenOptions { client_id, code } = options;
 
-        let client = reqwest::Client::new();
         let url = self.workos.base_url().join("/sso/token")?;
         let params = [
             ("client_id", &client_id.to_string()),
@@ -42,7 +41,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
             ("grant_type", &"authorization_code".to_string()),
             ("code", &code.to_string()),
         ];
-        let response = client.post(url).form(&params).send().await?;
+        let response = self.workos.client().post(url).form(&params).send().await?;
         let get_profile_and_token_response = response.json::<GetProfileAndTokenResponse>().await?;
 
         Ok(get_profile_and_token_response)

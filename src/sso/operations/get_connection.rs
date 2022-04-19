@@ -18,12 +18,13 @@ impl<'a> GetConnection for Sso<'a> {
         &self,
         connection_id: &ConnectionId,
     ) -> Result<Connection, Box<dyn Error>> {
-        let client = reqwest::Client::new();
         let url = self.workos.base_url().join(&format!(
             "/connections/{connection_id}",
             connection_id = connection_id
         ))?;
-        let response = client
+        let response = self
+            .workos
+            .client()
             .get(url)
             .bearer_auth(self.workos.api_key())
             .send()

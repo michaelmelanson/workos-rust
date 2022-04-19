@@ -12,9 +12,14 @@ pub trait GetProfile {
 #[async_trait]
 impl<'a> GetProfile for Sso<'a> {
     async fn get_profile(&self, access_token: &AccessToken) -> Result<Profile, Box<dyn Error>> {
-        let client = reqwest::Client::new();
         let url = self.workos.base_url().join("/sso/profile")?;
-        let response = client.get(url).bearer_auth(access_token).send().await?;
+        let response = self
+            .workos
+            .client()
+            .get(url)
+            .bearer_auth(access_token)
+            .send()
+            .await?;
         let profile = response.json::<Profile>().await?;
 
         Ok(profile)
