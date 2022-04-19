@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+use crate::organizations::OrganizationId;
 use crate::sso::ConnectionType;
 use crate::KnownOrUnknown;
 
@@ -38,7 +39,7 @@ pub enum ConnectionState {
 pub struct Connection {
     pub object: String,
     pub id: ConnectionId,
-    pub organization_id: Option<String>,
+    pub organization_id: Option<OrganizationId>,
 
     #[serde(rename = "connection_type")]
     pub r#type: KnownOrUnknown<ConnectionType, String>,
@@ -50,7 +51,9 @@ pub struct Connection {
 mod test {
     use serde_json::json;
 
-    use crate::{sso::ConnectionType, KnownOrUnknown};
+    use crate::organizations::OrganizationId;
+    use crate::sso::ConnectionType;
+    use crate::KnownOrUnknown;
 
     use super::{Connection, ConnectionId, ConnectionState};
 
@@ -76,7 +79,7 @@ mod test {
             Connection {
                 object: "connection".to_string(),
                 id: ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"),
-                organization_id: Some("org_01EHWNCE74X7JSDV0X3SZ3KJNY".to_string()),
+                organization_id: Some(OrganizationId::from("org_01EHWNCE74X7JSDV0X3SZ3KJNY")),
                 r#type: KnownOrUnknown::Known(ConnectionType::GoogleOauth),
                 name: "Foo Corp".to_string(),
                 state: ConnectionState::Active,

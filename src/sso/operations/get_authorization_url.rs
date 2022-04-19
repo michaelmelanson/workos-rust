@@ -1,5 +1,6 @@
 use url::{ParseError, Url};
 
+use crate::organizations::OrganizationId;
 use crate::sso::{ClientId, ConnectionId, Sso};
 
 #[derive(Debug)]
@@ -11,7 +12,7 @@ pub enum Provider {
 #[derive(Debug)]
 pub enum ConnectionSelector<'a> {
     Connection(&'a ConnectionId),
-    Organization(&'a str),
+    Organization(&'a OrganizationId),
     Provider(&'a Provider),
 }
 
@@ -123,7 +124,9 @@ mod test {
             .get_authorization_url(&GetAuthorizationUrlOptions {
                 client_id: &ClientId::from("client_123456789"),
                 redirect_uri: "https://your-app.com/callback",
-                connection_selector: ConnectionSelector::Organization("org_1234"),
+                connection_selector: ConnectionSelector::Organization(&OrganizationId::from(
+                    "org_1234",
+                )),
                 state: None,
             })
             .unwrap();
