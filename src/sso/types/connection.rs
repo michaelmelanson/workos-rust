@@ -1,7 +1,30 @@
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 use crate::sso::ConnectionType;
 use crate::KnownOrUnknown;
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub struct ConnectionId(String);
+
+impl Display for ConnectionId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<String> for ConnectionId {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&str> for ConnectionId {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -14,7 +37,7 @@ pub enum ConnectionState {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Connection {
     pub object: String,
-    pub id: String,
+    pub id: ConnectionId,
     pub organization_id: Option<String>,
 
     #[serde(rename = "connection_type")]
@@ -29,7 +52,7 @@ mod test {
 
     use crate::{sso::ConnectionType, KnownOrUnknown};
 
-    use super::{Connection, ConnectionState};
+    use super::{Connection, ConnectionId, ConnectionState};
 
     #[test]
     fn it_deserializes_a_connection() {
@@ -52,7 +75,7 @@ mod test {
             connection,
             Connection {
                 object: "connection".to_string(),
-                id: "conn_01E4ZCR3C56J083X43JQXF3JK5".to_string(),
+                id: ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"),
                 organization_id: Some("org_01EHWNCE74X7JSDV0X3SZ3KJNY".to_string()),
                 r#type: KnownOrUnknown::Known(ConnectionType::GoogleOauth),
                 name: "Foo Corp".to_string(),

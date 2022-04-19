@@ -2,16 +2,22 @@ use std::error::Error;
 
 use async_trait::async_trait;
 
-use crate::sso::{Connection, Sso};
+use crate::sso::{Connection, ConnectionId, Sso};
 
 #[async_trait]
 pub trait GetConnection {
-    async fn get_connection(&self, connection_id: &str) -> Result<Connection, Box<dyn Error>>;
+    async fn get_connection(
+        &self,
+        connection_id: &ConnectionId,
+    ) -> Result<Connection, Box<dyn Error>>;
 }
 
 #[async_trait]
 impl<'a> GetConnection for Sso<'a> {
-    async fn get_connection(&self, connection_id: &str) -> Result<Connection, Box<dyn Error>> {
+    async fn get_connection(
+        &self,
+        connection_id: &ConnectionId,
+    ) -> Result<Connection, Box<dyn Error>> {
         let client = reqwest::Client::new();
         let url = self.workos.base_url().join(&format!(
             "/connections/{connection_id}",
@@ -72,10 +78,13 @@ mod test {
 
         let connection = workos
             .sso()
-            .get_connection("conn_01E4ZCR3C56J083X43JQXF3JK5")
+            .get_connection(&ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"))
             .await
             .unwrap();
 
-        assert_eq!(connection.id, "conn_01E4ZCR3C56J083X43JQXF3JK5")
+        assert_eq!(
+            connection.id,
+            ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5")
+        )
     }
 }

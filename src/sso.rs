@@ -16,7 +16,7 @@ pub enum Provider {
 
 #[derive(Debug)]
 pub enum ConnectionSelector<'a> {
-    Connection(&'a str),
+    Connection(&'a ConnectionId),
     Organization(&'a str),
     Provider(&'a Provider),
 }
@@ -55,23 +55,27 @@ impl<'a> Sso<'a> {
         let query = {
             let client_id = client_id.to_string();
 
+            let connection_selector_param = match connection_selector {
+                ConnectionSelector::Connection(connection_id) => {
+                    ("connection", connection_id.to_string())
+                }
+                ConnectionSelector::Organization(organization_id) => {
+                    ("organization", organization_id.to_string())
+                }
+                ConnectionSelector::Provider(provider) => (
+                    "provider",
+                    match provider {
+                        Provider::GoogleOauth => "GoogleOAuth".to_string(),
+                        Provider::MicrosoftOauth => "MicrosoftOAuth".to_string(),
+                    },
+                ),
+            };
+
             let mut query_params: querystring::QueryParams = vec![
                 ("response_type", "code"),
                 ("client_id", &client_id),
                 ("redirect_uri", redirect_uri),
-                match connection_selector {
-                    ConnectionSelector::Connection(connection_id) => ("connection", connection_id),
-                    ConnectionSelector::Organization(organization_id) => {
-                        ("organization", organization_id)
-                    }
-                    ConnectionSelector::Provider(provider) => (
-                        "provider",
-                        match provider {
-                            Provider::GoogleOauth => "GoogleOAuth",
-                            Provider::MicrosoftOauth => "MicrosoftOauth",
-                        },
-                    ),
-                },
+                (connection_selector_param.0, &connection_selector_param.1),
             ];
 
             if let Some(state) = state {
@@ -99,7 +103,9 @@ mod test {
             .get_authorization_url(&GetAuthorizationUrlOptions {
                 client_id: &ClientId::from("client_123456789"),
                 redirect_uri: "https://your-app.com/callback",
-                connection_selector: ConnectionSelector::Connection("conn_1234"),
+                connection_selector: ConnectionSelector::Connection(&ConnectionId::from(
+                    "conn_1234",
+                )),
                 state: None,
             })
             .unwrap();
