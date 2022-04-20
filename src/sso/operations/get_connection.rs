@@ -6,12 +6,12 @@ use crate::sso::{Connection, ConnectionId, Sso};
 use crate::{WorkOsError, WorkOsResult};
 
 #[derive(Debug, Error)]
-pub enum GetConnectionError {
-    #[error("parse error")]
-    ParseError(#[from] url::ParseError),
+pub enum GetConnectionError {}
 
-    #[error("request error")]
-    RequestError(#[from] reqwest::Error),
+impl From<GetConnectionError> for WorkOsError<GetConnectionError> {
+    fn from(err: GetConnectionError) -> Self {
+        Self::Operation(err)
+    }
 }
 
 #[async_trait]
@@ -34,23 +34,18 @@ impl<'a> GetConnection for Sso<'a> {
         let url = self
             .workos
             .base_url()
-            .join(&format!("/connections/{id}", id = id))
-            .map_err(GetConnectionError::ParseError)?;
+            .join(&format!("/connections/{id}", id = id))?;
         let response = self
             .workos
             .client()
             .get(url)
             .bearer_auth(self.workos.api_key())
             .send()
-            .await
-            .map_err(GetConnectionError::RequestError)?;
+            .await?;
 
         match response.error_for_status_ref() {
             Ok(_) => {
-                let connection = response
-                    .json::<Connection>()
-                    .await
-                    .map_err(GetConnectionError::RequestError)?;
+                let connection = response.json::<Connection>().await?;
 
                 Ok(connection)
             }
