@@ -2,6 +2,7 @@ use url::{ParseError, Url};
 
 use crate::{organizations::Organizations, sso::Sso};
 
+/// The WorkOS client.
 pub struct WorkOs {
     base_url: Url,
     api_key: String,
@@ -9,10 +10,12 @@ pub struct WorkOs {
 }
 
 impl WorkOs {
+    /// Returns a new instance of the WorkOS client using the provided API key.
     pub fn new(api_key: &str) -> Self {
         WorkOsBuilder::new(api_key).build()
     }
 
+    /// Returns a [`WorkOsBuilder`] that may be used to construct a WorkOS client.
     pub fn builder(api_key: &str) -> WorkOsBuilder {
         WorkOsBuilder::new(api_key)
     }
@@ -38,12 +41,14 @@ impl WorkOs {
     }
 }
 
+/// A builder for a WorkOS client.
 pub struct WorkOsBuilder<'a> {
     base_url: Url,
     api_key: &'a str,
 }
 
 impl<'a> WorkOsBuilder<'a> {
+    /// Returns a new [`WorkOsBuilder`] using the provided API key.
     pub fn new(api_key: &'a str) -> Self {
         Self {
             base_url: Url::parse("https://api.workos.com").unwrap(),
@@ -51,16 +56,19 @@ impl<'a> WorkOsBuilder<'a> {
         }
     }
 
+    /// Sets the base URL of the WorkOS API that the client should point to.
     pub fn base_url(mut self, base_url: &'a str) -> Result<WorkOsBuilder, ParseError> {
         self.base_url = Url::parse(base_url)?;
         Ok(self)
     }
 
+    /// Sets the API key that the client will use.
     pub fn api_key(mut self, api_key: &'a str) -> Self {
         self.api_key = api_key;
         self
     }
 
+    /// Consumes the builder and returns the constructed client.
     pub fn build(self) -> WorkOs {
         let client = reqwest::Client::builder()
             .user_agent(concat!("workos-rust/", env!("CARGO_PKG_VERSION")))

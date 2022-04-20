@@ -1,5 +1,8 @@
 use std::fmt::Display;
 
+/// A client ID used to initiate SSO.
+///
+/// Each environment will have its own client ID.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct ClientId(String);
 

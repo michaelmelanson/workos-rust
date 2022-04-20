@@ -6,11 +6,15 @@ pub use types::*;
 
 use crate::WorkOs;
 
+/// Single Sign-On (SSO).
+///
+/// [WorkOS Docs: SSO Guide](https://workos.com/docs/sso/guide)
 pub struct Sso<'a> {
     workos: &'a WorkOs,
 }
 
 impl<'a> Sso<'a> {
+    /// Returns a new [`Sso`] instance for the provided WorkOS client.
     pub fn new(workos: &'a WorkOs) -> Self {
         Self { workos }
     }

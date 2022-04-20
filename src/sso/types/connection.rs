@@ -6,6 +6,7 @@ use crate::organizations::OrganizationId;
 use crate::sso::ConnectionType;
 use crate::KnownOrUnknown;
 
+/// The ID of a [`Connection`].
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct ConnectionId(String);
 
@@ -27,10 +28,14 @@ impl From<&str> for ConnectionId {
     }
 }
 
+/// The state of a [`Connection`].
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ConnectionState {
+    /// The connection is active.
     Active,
+
+    /// The connection is inactive.
     Inactive,
 }
 
@@ -38,12 +43,21 @@ pub enum ConnectionState {
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Connection {
     pub object: String,
+
+    /// The ID of the connection.
     pub id: ConnectionId,
+
+    /// The ID of the associated [`Organization`] for this connection.
     pub organization_id: Option<OrganizationId>,
 
+    /// The type of the connection.
     #[serde(rename = "connection_type")]
     pub r#type: KnownOrUnknown<ConnectionType, String>,
+
+    /// The display name of the connection.
     pub name: String,
+
+    /// The state of the connection.
     pub state: ConnectionState,
 }
 

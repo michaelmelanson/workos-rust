@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+/// The ID of an [`Organization`].
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct OrganizationId(String);
 
@@ -33,6 +34,7 @@ pub struct Organization {
     pub domains: Vec<OrganizationDomain>,
 }
 
+/// The ID of an [`OrganizationDomain`].
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct OrganizationDomainId(String);
 

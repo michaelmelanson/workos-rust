@@ -11,6 +11,7 @@ pub struct Organizations<'a> {
 }
 
 impl<'a> Organizations<'a> {
+    /// Returns a new [`Organizations`] instance for the provided WorkOS client.
     pub fn new(workos: &'a WorkOs) -> Self {
         Self { workos }
     }

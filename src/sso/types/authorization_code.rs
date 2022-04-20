@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+/// An authorization code that may be exchanged for an SSO profile and access
+/// token.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct AuthorizationCode(String);
 
