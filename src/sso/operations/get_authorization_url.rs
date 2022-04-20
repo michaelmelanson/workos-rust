@@ -92,7 +92,7 @@ mod test {
 
     #[test]
     fn it_builds_an_authorization_url_when_given_a_connection_id() {
-        let workos = WorkOs::new(ApiKey::from("sk_example_123456789"));
+        let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
         let workos_sso = Sso::new(&workos);
 
         let authorization_url = workos_sso
@@ -117,7 +117,7 @@ mod test {
 
     #[test]
     fn it_builds_an_authorization_url_when_given_an_organization_id() {
-        let workos = WorkOs::new(ApiKey::from("sk_example_123456789"));
+        let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
         let workos_sso = Sso::new(&workos);
 
         let authorization_url = workos_sso
@@ -142,7 +142,7 @@ mod test {
 
     #[test]
     fn it_builds_an_authorization_url_when_given_a_provider() {
-        let workos = WorkOs::new(ApiKey::from("sk_example_123456789"));
+        let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
         let workos_sso = Sso::new(&workos);
 
         let authorization_url = workos_sso

@@ -86,7 +86,7 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_token_endpoint() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -139,7 +139,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_unauthorized_error_with_an_invalid_client() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -168,7 +168,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_unauthorized_error_with_an_unauthorized_client() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -197,7 +197,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_authorization_code_is_invalid() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();

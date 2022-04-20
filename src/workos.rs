@@ -11,12 +11,12 @@ pub struct WorkOs {
 
 impl WorkOs {
     /// Returns a new instance of the WorkOS client using the provided API key.
-    pub fn new(key: ApiKey) -> Self {
+    pub fn new(key: &ApiKey) -> Self {
         WorkOsBuilder::new(key).build()
     }
 
     /// Returns a [`WorkOsBuilder`] that may be used to construct a WorkOS client.
-    pub fn builder(key: ApiKey) -> WorkOsBuilder {
+    pub fn builder(key: &ApiKey) -> WorkOsBuilder {
         WorkOsBuilder::new(key)
     }
 
@@ -42,29 +42,29 @@ impl WorkOs {
 }
 
 /// A builder for a WorkOS client.
-pub struct WorkOsBuilder {
+pub struct WorkOsBuilder<'a> {
     base_url: Url,
-    api_key: ApiKey,
+    key: &'a ApiKey,
 }
 
-impl WorkOsBuilder {
+impl<'a> WorkOsBuilder<'a> {
     /// Returns a new [`WorkOsBuilder`] using the provided API key.
-    pub fn new(api_key: ApiKey) -> Self {
+    pub fn new(key: &'a ApiKey) -> Self {
         Self {
             base_url: Url::parse("https://api.workos.com").unwrap(),
-            api_key,
+            key,
         }
     }
 
     /// Sets the base URL of the WorkOS API that the client should point to.
-    pub fn base_url(mut self, base_url: &str) -> Result<WorkOsBuilder, ParseError> {
+    pub fn base_url(mut self, base_url: &'a str) -> Result<WorkOsBuilder, ParseError> {
         self.base_url = Url::parse(base_url)?;
         Ok(self)
     }
 
     /// Sets the API key that the client will use.
-    pub fn api_key(mut self, api_key: ApiKey) -> Self {
-        self.api_key = api_key;
+    pub fn key(mut self, key: &'a ApiKey) -> Self {
+        self.key = key;
         self
     }
 
@@ -77,7 +77,7 @@ impl WorkOsBuilder {
 
         WorkOs {
             base_url: self.base_url,
-            key: self.api_key,
+            key: self.key.to_owned(),
             client,
         }
     }
@@ -91,7 +91,7 @@ mod test {
 
     #[test]
     fn it_supports_setting_the_base_url_through_the_builder() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url("https://auth.your-app.com")
             .unwrap()
             .build();
@@ -104,8 +104,8 @@ mod test {
 
     #[test]
     fn it_supports_setting_the_api_key_through_the_builder() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
-            .api_key(ApiKey::from("sk_another_api_key"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .key(&ApiKey::from("sk_another_api_key"))
             .build();
 
         assert_eq!(workos.key(), &ApiKey::from("sk_another_api_key"))
@@ -113,7 +113,7 @@ mod test {
 
     #[tokio::test]
     async fn it_sets_the_user_agent_header_on_the_client() {
-        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
