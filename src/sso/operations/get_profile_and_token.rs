@@ -67,7 +67,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
                         _ => WorkOsError::Operation(error),
                     })
                 }
-                _ => Err(WorkOsError::Unauthorized),
+                _ => Err(WorkOsError::RequestError(err)),
             },
         }
     }

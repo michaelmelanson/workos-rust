@@ -51,7 +51,7 @@ impl<'a> GetConnection for Sso<'a> {
             }
             Err(err) => match err.status() {
                 Some(StatusCode::UNAUTHORIZED) => Err(WorkOsError::Unauthorized),
-                _ => Err(WorkOsError::Unauthorized),
+                _ => Err(WorkOsError::RequestError(err)),
             },
         }
     }
