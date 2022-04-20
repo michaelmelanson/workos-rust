@@ -37,17 +37,17 @@ impl<'a> GetProfile for Sso<'a> {
 
 #[cfg(test)]
 mod test {
-    use crate::WorkOs;
-
-    use super::*;
-
     use mockito::{self, mock};
     use serde_json::json;
     use tokio;
 
+    use crate::{ApiKey, WorkOs};
+
+    use super::*;
+
     #[tokio::test]
     async fn it_calls_the_get_profile_endpoint() {
-        let workos = WorkOs::builder(&"sk_example_123456789")
+        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();

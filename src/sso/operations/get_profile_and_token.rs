@@ -45,7 +45,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
         let url = self.workos.base_url().join("/sso/token")?;
         let params = [
             ("client_id", &client_id.to_string()),
-            ("client_secret", self.workos.api_key()),
+            ("client_secret", &self.workos.key().to_string()),
             ("grant_type", &"authorization_code".to_string()),
             ("code", &code.to_string()),
         ];
@@ -80,13 +80,13 @@ mod test {
     use serde_json::json;
     use tokio;
 
-    use crate::{WorkOs, WorkOsError};
+    use crate::{ApiKey, WorkOs, WorkOsError};
 
     use super::*;
 
     #[tokio::test]
     async fn it_calls_the_token_endpoint() {
-        let workos = WorkOs::builder(&"sk_example_123456789")
+        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -139,7 +139,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_unauthorized_error_with_an_invalid_client() {
-        let workos = WorkOs::builder(&"sk_example_123456789")
+        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -168,7 +168,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_unauthorized_error_with_an_unauthorized_client() {
-        let workos = WorkOs::builder(&"sk_example_123456789")
+        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
@@ -197,7 +197,7 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_authorization_code_is_invalid() {
-        let workos = WorkOs::builder(&"sk_example_123456789")
+        let workos = WorkOs::builder(ApiKey::from("sk_example_123456789"))
             .base_url(&mockito::server_url())
             .unwrap()
             .build();
