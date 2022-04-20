@@ -62,7 +62,10 @@ impl<'a> GetProfileAndToken for Sso<'a> {
                 Some(StatusCode::BAD_REQUEST) => {
                     let error = response.json::<GetProfileAndTokenError>().await?;
 
-                    Err(WorkOsError::Operation(error))
+                    Err(match error.error.as_str() {
+                        "invalid_client" | "unauthorized_client" => WorkOsError::Unauthorized,
+                        _ => WorkOsError::Operation(error),
+                    })
                 }
                 _ => Err(WorkOsError::Unauthorized),
             },
@@ -72,6 +75,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
 
 #[cfg(test)]
 mod test {
+    use matches::assert_matches;
     use mockito::{self, mock, Matcher};
     use serde_json::json;
     use tokio;
@@ -131,6 +135,64 @@ mod test {
             AccessToken::from("01DMEK0J53CVMC32CK5SE0KZ8Q")
         );
         assert_eq!(response.profile.id, "prof_01DMC79VCBZ0NY2099737PSVF1")
+    }
+
+    #[tokio::test]
+    async fn it_returns_an_unauthorized_error_with_an_invalid_client() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("POST", "/sso/token")
+            .with_status(400)
+            .with_body(
+                json!({
+                    "error": "invalid_client",
+                    "error_description": "Invalid client ID."
+                })
+                .to_string(),
+            )
+            .create();
+
+        let result = workos
+            .sso()
+            .get_profile_and_token(&GetProfileAndTokenOptions {
+                client_id: &ClientId::from("client_1234"),
+                code: &AuthorizationCode::from("abc123"),
+            })
+            .await;
+
+        assert_matches!(result, Err(WorkOsError::Unauthorized))
+    }
+
+    #[tokio::test]
+    async fn it_returns_an_unauthorized_error_with_an_unauthorized_client() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("POST", "/sso/token")
+            .with_status(400)
+            .with_body(
+                json!({
+                    "error": "unauthorized_client",
+                    "error_description": "Unauthorized"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let result = workos
+            .sso()
+            .get_profile_and_token(&GetProfileAndTokenOptions {
+                client_id: &ClientId::from("client_1234"),
+                code: &AuthorizationCode::from("abc123"),
+            })
+            .await;
+
+        assert_matches!(result, Err(WorkOsError::Unauthorized))
     }
 
     #[tokio::test]
