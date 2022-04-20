@@ -1,9 +1,10 @@
 use async_trait::async_trait;
+use reqwest::StatusCode;
 use serde::Deserialize;
 use thiserror::Error;
 
 use crate::sso::{AccessToken, AuthorizationCode, ClientId, Profile, Sso};
-use crate::WorkOsResult;
+use crate::{WorkOsError, WorkOsResult};
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
@@ -17,8 +18,12 @@ pub struct GetProfileAndTokenResponse {
     pub profile: Profile,
 }
 
-#[derive(Debug, Error)]
-pub enum GetProfileAndTokenError {}
+#[derive(Debug, Error, Deserialize)]
+#[error("{error}: {error_description}")]
+pub struct GetProfileAndTokenError {
+    pub error: String,
+    pub error_description: String,
+}
 
 #[async_trait]
 pub trait GetProfileAndToken {
@@ -45,21 +50,35 @@ impl<'a> GetProfileAndToken for Sso<'a> {
             ("code", &code.to_string()),
         ];
         let response = self.workos.client().post(url).form(&params).send().await?;
-        let get_profile_and_token_response = response.json::<GetProfileAndTokenResponse>().await?;
 
-        Ok(get_profile_and_token_response)
+        match response.error_for_status_ref() {
+            Ok(_) => {
+                let get_profile_and_token_response =
+                    response.json::<GetProfileAndTokenResponse>().await?;
+
+                Ok(get_profile_and_token_response)
+            }
+            Err(err) => match err.status() {
+                Some(StatusCode::BAD_REQUEST) => {
+                    let error = response.json::<GetProfileAndTokenError>().await?;
+
+                    Err(WorkOsError::Operation(error))
+                }
+                _ => Err(WorkOsError::Unauthorized),
+            },
+        }
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::WorkOs;
-
-    use super::*;
-
     use mockito::{self, mock, Matcher};
     use serde_json::json;
     use tokio;
+
+    use crate::{WorkOs, WorkOsError};
+
+    use super::*;
 
     #[tokio::test]
     async fn it_calls_the_token_endpoint() {
@@ -112,5 +131,42 @@ mod test {
             AccessToken::from("01DMEK0J53CVMC32CK5SE0KZ8Q")
         );
         assert_eq!(response.profile.id, "prof_01DMC79VCBZ0NY2099737PSVF1")
+    }
+
+    #[tokio::test]
+    async fn it_returns_an_error_when_the_authorization_code_is_invalid() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("POST", "/sso/token")
+            .with_status(400)
+            .with_body(
+                json!({
+                    "error": "invalid_grant",
+                    "error_description": "The code 'abc123' has expired or is invalid."
+                })
+                .to_string(),
+            )
+            .create();
+
+        let result = workos
+            .sso()
+            .get_profile_and_token(&GetProfileAndTokenOptions {
+                client_id: &ClientId::from("client_1234"),
+                code: &AuthorizationCode::from("abc123"),
+            })
+            .await;
+
+        if let Err(WorkOsError::Operation(error)) = result {
+            assert_eq!(error.error, "invalid_grant");
+            assert_eq!(
+                error.error_description,
+                "The code 'abc123' has expired or is invalid."
+            );
+        } else {
+            panic!("expected get_profile_and_token to return an error")
+        }
     }
 }
