@@ -1,20 +1,32 @@
-use std::error::Error;
-
 use async_trait::async_trait;
+use reqwest::StatusCode;
+use thiserror::Error;
 
 use crate::sso::{Connection, ConnectionId, Sso};
+
+#[derive(Debug, Error)]
+pub enum GetConnectionError {
+    #[error("unauthorized")]
+    Unauthorized,
+
+    #[error("parse error")]
+    ParseError(#[from] url::ParseError),
+
+    #[error("request error")]
+    RequestError(#[from] reqwest::Error),
+}
 
 #[async_trait]
 pub trait GetConnection {
     /// Retrieves a [`Connection`] by its ID.
     ///
     /// [WorkOS Docs: Get a Connection](https://workos.com/docs/reference/sso/connection/get)
-    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, Box<dyn Error>>;
+    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, GetConnectionError>;
 }
 
 #[async_trait]
 impl<'a> GetConnection for Sso<'a> {
-    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, Box<dyn Error>> {
+    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, GetConnectionError> {
         let url = self
             .workos
             .base_url()
@@ -26,9 +38,18 @@ impl<'a> GetConnection for Sso<'a> {
             .bearer_auth(self.workos.api_key())
             .send()
             .await?;
-        let connection = response.json::<Connection>().await?;
 
-        Ok(connection)
+        match response.error_for_status_ref() {
+            Ok(_) => {
+                let connection = response.json::<Connection>().await?;
+
+                Ok(connection)
+            }
+            Err(err) => match err.status() {
+                Some(StatusCode::UNAUTHORIZED) => Err(GetConnectionError::Unauthorized),
+                _ => Err(GetConnectionError::Unauthorized),
+            },
+        }
     }
 }
 
@@ -38,6 +59,7 @@ mod test {
 
     use super::*;
 
+    use matches::assert_matches;
     use mockito::{self, mock};
     use serde_json::json;
     use tokio;
@@ -84,5 +106,31 @@ mod test {
             connection.id,
             ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5")
         )
+    }
+
+    #[tokio::test]
+    async fn it_returns_an_error_when_the_get_connection_endpoint_returns_unauthorized() {
+        let workos = WorkOs::builder(&"sk_example_123456789")
+            .base_url(&mockito::server_url())
+            .unwrap()
+            .build();
+
+        let _mock = mock("GET", "/connections/conn_01E4ZCR3C56J083X43JQXF3JK5")
+            .match_header("Authorization", "Bearer sk_example_123456789")
+            .with_status(401)
+            .with_body(
+                json!({
+                    "message": "Unauthorized"
+                })
+                .to_string(),
+            )
+            .create();
+
+        let result = workos
+            .sso()
+            .get_connection(&ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"))
+            .await;
+
+        assert_matches!(result, Err(GetConnectionError::Unauthorized))
     }
 }
