@@ -1,9 +1,9 @@
-use std::error::Error;
-
 use async_trait::async_trait;
 use serde::Deserialize;
+use thiserror::Error;
 
 use crate::sso::{AccessToken, AuthorizationCode, ClientId, Profile, Sso};
+use crate::WorkOsResult;
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
@@ -17,13 +17,16 @@ pub struct GetProfileAndTokenResponse {
     pub profile: Profile,
 }
 
+#[derive(Debug, Error)]
+pub enum GetProfileAndTokenError {}
+
 #[async_trait]
 pub trait GetProfileAndToken {
     /// [WorkOS Docs: Get a Profile and Token](https://workos.com/docs/reference/sso/profile/token)
     async fn get_profile_and_token(
         &self,
         options: &GetProfileAndTokenOptions<'_>,
-    ) -> Result<GetProfileAndTokenResponse, Box<dyn Error>>;
+    ) -> WorkOsResult<GetProfileAndTokenResponse, GetProfileAndTokenError>;
 }
 
 #[async_trait]
@@ -31,7 +34,7 @@ impl<'a> GetProfileAndToken for Sso<'a> {
     async fn get_profile_and_token(
         &self,
         options: &GetProfileAndTokenOptions<'_>,
-    ) -> Result<GetProfileAndTokenResponse, Box<dyn Error>> {
+    ) -> WorkOsResult<GetProfileAndTokenResponse, GetProfileAndTokenError> {
         let &GetProfileAndTokenOptions { client_id, code } = options;
 
         let url = self.workos.base_url().join("/sso/token")?;

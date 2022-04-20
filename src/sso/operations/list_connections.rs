@@ -1,10 +1,8 @@
-use std::error::Error;
-
 use async_trait::async_trait;
 use serde::Serialize;
 
 use crate::sso::{Connection, ConnectionType, Sso};
-use crate::{KnownOrUnknown, PaginatedList};
+use crate::{KnownOrUnknown, PaginatedList, WorkOsResult};
 
 #[derive(Debug, Serialize)]
 pub struct ListConnectionsOptions<'a> {
@@ -32,7 +30,7 @@ pub trait ListConnections {
     async fn list_connections(
         &self,
         options: &ListConnectionsOptions<'_>,
-    ) -> Result<PaginatedList<Connection>, Box<dyn Error>>;
+    ) -> WorkOsResult<PaginatedList<Connection>, ()>;
 }
 
 #[async_trait]
@@ -40,7 +38,7 @@ impl<'a> ListConnections for Sso<'a> {
     async fn list_connections(
         &self,
         options: &ListConnectionsOptions<'_>,
-    ) -> Result<PaginatedList<Connection>, Box<dyn Error>> {
+    ) -> WorkOsResult<PaginatedList<Connection>, ()> {
         let url = self.workos.base_url().join("/connections")?;
         let response = self
             .workos

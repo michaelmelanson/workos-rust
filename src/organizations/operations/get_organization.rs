@@ -1,20 +1,35 @@
-use std::error::Error;
-
 use async_trait::async_trait;
+use thiserror::Error;
 
 use crate::organizations::{Organization, OrganizationId, Organizations};
+use crate::{WorkOsError, WorkOsResult};
+
+#[derive(Debug, Error)]
+pub enum GetOrganizationError {}
+
+impl From<GetOrganizationError> for WorkOsError<GetOrganizationError> {
+    fn from(err: GetOrganizationError) -> Self {
+        Self::Operation(err)
+    }
+}
 
 #[async_trait]
 pub trait GetOrganization {
     /// Retrieves an [`Organization`] by its ID.
     ///
     /// [WorkOS Docs: Get an Organization](https://workos.com/docs/reference/sso/organization/get)
-    async fn get_organization(&self, id: &OrganizationId) -> Result<Organization, Box<dyn Error>>;
+    async fn get_organization(
+        &self,
+        id: &OrganizationId,
+    ) -> WorkOsResult<Organization, GetOrganizationError>;
 }
 
 #[async_trait]
 impl<'a> GetOrganization for Organizations<'a> {
-    async fn get_organization(&self, id: &OrganizationId) -> Result<Organization, Box<dyn Error>> {
+    async fn get_organization(
+        &self,
+        id: &OrganizationId,
+    ) -> WorkOsResult<Organization, GetOrganizationError> {
         let url = self
             .workos
             .base_url()

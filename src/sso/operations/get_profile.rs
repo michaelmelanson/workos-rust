@@ -1,17 +1,26 @@
-use std::error::Error;
-
 use async_trait::async_trait;
+use thiserror::Error;
 
 use crate::sso::{AccessToken, Profile, Sso};
+use crate::WorkOsResult;
+
+#[derive(Debug, Error)]
+pub enum GetProfileError {}
 
 #[async_trait]
 pub trait GetProfile {
-    async fn get_profile(&self, access_token: &AccessToken) -> Result<Profile, Box<dyn Error>>;
+    async fn get_profile(
+        &self,
+        access_token: &AccessToken,
+    ) -> WorkOsResult<Profile, GetProfileError>;
 }
 
 #[async_trait]
 impl<'a> GetProfile for Sso<'a> {
-    async fn get_profile(&self, access_token: &AccessToken) -> Result<Profile, Box<dyn Error>> {
+    async fn get_profile(
+        &self,
+        access_token: &AccessToken,
+    ) -> WorkOsResult<Profile, GetProfileError> {
         let url = self.workos.base_url().join("/sso/profile")?;
         let response = self
             .workos
