@@ -3,12 +3,10 @@ use reqwest::StatusCode;
 use thiserror::Error;
 
 use crate::sso::{Connection, ConnectionId, Sso};
+use crate::{WorkOsError, WorkOsResult};
 
 #[derive(Debug, Error)]
 pub enum GetConnectionError {
-    #[error("unauthorized")]
-    Unauthorized,
-
     #[error("parse error")]
     ParseError(#[from] url::ParseError),
 
@@ -21,33 +19,44 @@ pub trait GetConnection {
     /// Retrieves a [`Connection`] by its ID.
     ///
     /// [WorkOS Docs: Get a Connection](https://workos.com/docs/reference/sso/connection/get)
-    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, GetConnectionError>;
+    async fn get_connection(
+        &self,
+        id: &ConnectionId,
+    ) -> WorkOsResult<Connection, GetConnectionError>;
 }
 
 #[async_trait]
 impl<'a> GetConnection for Sso<'a> {
-    async fn get_connection(&self, id: &ConnectionId) -> Result<Connection, GetConnectionError> {
+    async fn get_connection(
+        &self,
+        id: &ConnectionId,
+    ) -> WorkOsResult<Connection, GetConnectionError> {
         let url = self
             .workos
             .base_url()
-            .join(&format!("/connections/{id}", id = id))?;
+            .join(&format!("/connections/{id}", id = id))
+            .map_err(GetConnectionError::ParseError)?;
         let response = self
             .workos
             .client()
             .get(url)
             .bearer_auth(self.workos.api_key())
             .send()
-            .await?;
+            .await
+            .map_err(GetConnectionError::RequestError)?;
 
         match response.error_for_status_ref() {
             Ok(_) => {
-                let connection = response.json::<Connection>().await?;
+                let connection = response
+                    .json::<Connection>()
+                    .await
+                    .map_err(GetConnectionError::RequestError)?;
 
                 Ok(connection)
             }
             Err(err) => match err.status() {
-                Some(StatusCode::UNAUTHORIZED) => Err(GetConnectionError::Unauthorized),
-                _ => Err(GetConnectionError::Unauthorized),
+                Some(StatusCode::UNAUTHORIZED) => Err(WorkOsError::Unauthorized),
+                _ => Err(WorkOsError::Unauthorized),
             },
         }
     }
@@ -131,6 +140,6 @@ mod test {
             .get_connection(&ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"))
             .await;
 
-        assert_matches!(result, Err(GetConnectionError::Unauthorized))
+        assert_matches!(result, Err(WorkOsError::Unauthorized))
     }
 }
