@@ -27,7 +27,6 @@ impl From<&str> for OrganizationId {
 /// [WorkOS Docs: Organization](https://workos.com/docs/reference/organization)
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Organization {
-    pub object: String,
     pub id: OrganizationId,
     pub name: String,
     pub allow_profiles_outside_organization: bool,
@@ -58,7 +57,6 @@ impl From<&str> for OrganizationDomainId {
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct OrganizationDomain {
-    pub object: String,
     pub id: OrganizationDomainId,
     pub domain: String,
 }

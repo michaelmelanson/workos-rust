@@ -1,3 +1,5 @@
+#![warn(missing_docs)]
+
 mod core;
 mod known_or_unknown;
 mod workos;

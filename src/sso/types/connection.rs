@@ -42,8 +42,6 @@ pub enum ConnectionState {
 /// [WorkOS Docs: Connection](https://workos.com/docs/reference/sso/connection)
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Connection {
-    pub object: String,
-
     /// The ID of the connection.
     pub id: ConnectionId,
 
@@ -91,7 +89,6 @@ mod test {
         assert_eq!(
             connection,
             Connection {
-                object: "connection".to_string(),
                 id: ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"),
                 organization_id: Some(OrganizationId::from("org_01EHWNCE74X7JSDV0X3SZ3KJNY")),
                 r#type: KnownOrUnknown::Known(ConnectionType::GoogleOauth),
