@@ -14,7 +14,7 @@ pub struct CreateOrganizationOptions<'a> {
     pub name: &'a str,
 
     /// Whether the connections within this organization should allow profiles
-    /// that do not have a domain that is prsent in the set of the organization's
+    /// that do not have a domain that is present in the set of the organization's
     /// user email domains.
     ///
     /// See [here](https://workos.com/docs/sso/guide/frequently-asked-questions#allow-profiles-outside-organization)
