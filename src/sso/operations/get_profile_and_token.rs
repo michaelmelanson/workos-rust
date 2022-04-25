@@ -8,20 +8,30 @@ use crate::{WorkOsError, WorkOsResult};
 
 #[derive(Debug)]
 pub struct GetProfileAndTokenOptions<'a> {
+    /// The client ID corresponding to the environment that SSO was initiated
+    /// from.
     pub client_id: &'a ClientId,
+
+    /// The authorization code to exchange for the profile and token.
     pub code: &'a AuthorizationCode,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct GetProfileAndTokenResponse {
     pub access_token: AccessToken,
+
+    /// The user profile.
     pub profile: Profile,
 }
 
+/// An error returned from [`GetProfileAndToken`].
 #[derive(Debug, Error, Deserialize)]
 #[error("{error}: {error_description}")]
 pub struct GetProfileAndTokenError {
+    /// The error code of the error that occurred.
     pub error: String,
+
+    /// The description of the error.
     pub error_description: String,
 }
 
