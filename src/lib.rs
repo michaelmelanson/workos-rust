@@ -1,3 +1,5 @@
+//! The official SDK for interacting with the WorkOS API.
+
 #![warn(missing_docs)]
 
 mod core;
