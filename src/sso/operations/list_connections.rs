@@ -2,22 +2,24 @@ use async_trait::async_trait;
 use serde::Serialize;
 
 use crate::sso::{Connection, ConnectionType, Sso};
-use crate::{KnownOrUnknown, PaginatedList, WorkOsResult};
+use crate::{KnownOrUnknown, PaginatedList, PaginationOptions, WorkOsResult};
 
 #[derive(Debug, Serialize)]
 pub struct ListConnectionsOptions<'a> {
+    /// The pagination options to use when listing Connections.
+    #[serde(flatten)]
+    pub pagination: PaginationOptions<'a>,
+
+    /// The type of Connections to list.
     #[serde(rename = "connection_type")]
     pub r#type: &'a Option<KnownOrUnknown<ConnectionType, String>>,
-    pub before: &'a Option<String>,
-    pub after: &'a Option<String>,
 }
 
 impl<'a> Default for ListConnectionsOptions<'a> {
     fn default() -> Self {
         Self {
+            pagination: PaginationOptions::default(),
             r#type: &None,
-            before: &None,
-            after: &None,
         }
     }
 }
@@ -72,6 +74,7 @@ mod test {
             .build();
 
         let _mock = mock("GET", "/connections")
+            .match_query(Matcher::UrlEncoded("order".to_string(), "desc".to_string()))
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
             .with_body(
@@ -99,8 +102,8 @@ mod test {
                     }
                   ],
                   "list_metadata": {
-                    "before": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
-                    "after": null
+                    "after": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
+                    "before": null
                   }
                 })
                 .to_string(),
@@ -114,7 +117,7 @@ mod test {
             .unwrap();
 
         assert_eq!(
-            paginated_list.metadata.before,
+            paginated_list.metadata.after,
             Some("conn_01E2NPPCT7XQ2MVVYDHWGK1WN4".to_string())
         )
     }
@@ -148,8 +151,8 @@ mod test {
                     }
                   ],
                   "list_metadata": {
-                    "before": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
-                    "after": null
+                    "after": "conn_01E2NPPCT7XQ2MVVYDHWGK1WN4",
+                    "before": null
                   }
                 })
                 .to_string(),
