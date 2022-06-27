@@ -2,9 +2,9 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::directory_sync::DirectoryType;
-use crate::organizations::OrganizationId;
-use crate::KnownOrUnknown;
+use crate::{
+    directory_sync::DirectoryType, organizations::OrganizationId, KnownOrUnknown, Timestamps,
+};
 
 /// The ID of a [`Directory`].
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -68,6 +68,10 @@ pub struct Directory {
 
     /// The URL associated with an Enterprise Client.
     pub domain: Option<String>,
+
+    /// The timestamps for the Directory.
+    #[serde(flatten)]
+    pub timestamps: Timestamps,
 }
 
 #[cfg(test)]
@@ -77,6 +81,8 @@ mod test {
     use crate::directory_sync::DirectoryType;
     use crate::organizations::OrganizationId;
     use crate::KnownOrUnknown;
+    use crate::Timestamps;
+    use chrono::DateTime;
 
     use super::{Directory, DirectoryId, DirectoryState};
 
@@ -106,6 +112,10 @@ mod test {
                 r#type: KnownOrUnknown::Known(DirectoryType::BambooHr),
                 name: "Foo Corp".to_string(),
                 state: DirectoryState::Unlinked,
+                timestamps: Timestamps {
+                    created_at: DateTime::parse_from_rfc3339("2021-06-25T19:07:33.155Z").unwrap(),
+                    updated_at: DateTime::parse_from_rfc3339("2021-06-25T19:07:33.155Z").unwrap(),
+                }
             }
         )
     }
