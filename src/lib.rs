@@ -8,6 +8,7 @@ mod workos;
 
 pub mod admin_portal;
 pub mod directory_sync;
+pub mod mfa;
 pub mod organizations;
 pub mod sso;
 
