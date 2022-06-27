@@ -1,6 +1,7 @@
 use url::{ParseError, Url};
 
 use crate::admin_portal::AdminPortal;
+use crate::directory_sync::DirectorySync;
 use crate::mfa::Mfa;
 use crate::organizations::Organizations;
 use crate::passwordless::Passwordless;
@@ -39,6 +40,10 @@ impl WorkOs {
 
     pub fn admin_portal(&self) -> AdminPortal {
         AdminPortal::new(self)
+    }
+
+    pub fn directory_sync(&self) -> DirectorySync {
+        DirectorySync::new(self)
     }
 
     pub fn mfa(&self) -> Mfa {
