@@ -74,6 +74,27 @@ impl HandleGetProfileAndTokenError for Response {
 #[async_trait]
 pub trait GetProfileAndToken {
     /// [WorkOS Docs: Get a Profile and Token](https://workos.com/docs/reference/sso/profile/token)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use url::ParseError;
+    /// # use workos::WorkOsResult;
+    /// # use workos::sso::*;
+    /// use workos::{ApiKey, WorkOs};
+    ///
+    /// # async fn run() -> WorkOsResult<(), GetProfileAndTokenError> {
+    /// let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
+    ///
+    /// let GetProfileAndTokenResponse { profile, .. } = workos
+    ///     .sso()
+    ///     .get_profile_and_token(&GetProfileAndTokenParams {
+    ///         client_id: &ClientId::from("client_123456789"),
+    ///         code: &AuthorizationCode::from("01G6RSWVD06ZQ6JB4YS5W521S3"),
+    ///     })
+    ///     .await?;
+    /// # Ok(())
+    /// # }
     async fn get_profile_and_token(
         &self,
         params: &GetProfileAndTokenParams<'_>,
