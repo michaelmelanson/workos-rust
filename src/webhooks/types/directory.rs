@@ -2,30 +2,24 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
-use crate::directory_sync::{DirectoryState, DirectoryType};
-use crate::organizations::OrganizationId;
-use crate::{KnownOrUnknown, Timestamps};
+use crate::{
+    directory_sync::{DirectoryId, DirectoryType},
+    organizations::OrganizationId,
+    KnownOrUnknown, Timestamps,
+};
 
-/// The ID of a [`Directory`].
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub struct DirectoryId(String);
+/// The state of a [`Directory`].
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DirectoryState {
+    /// The directory is linked.
+    Active,
 
-impl Display for DirectoryId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+    /// The directory is unlinked.
+    Inactive,
 
-impl From<String> for DirectoryId {
-    fn from(value: String) -> Self {
-        Self(value)
-    }
-}
-
-impl From<&str> for DirectoryId {
-    fn from(value: &str) -> Self {
-        Self(value.to_string())
-    }
+    /// The directory is being deleted.
+    Deleting,
 }
 
 /// [WorkOS Docs: Directory](https://workos.com/docs/reference/directory-sync/directory)
