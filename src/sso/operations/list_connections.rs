@@ -81,7 +81,8 @@ mod test {
     use serde_json::json;
     use tokio;
 
-    use crate::{sso::ConnectionId, ApiKey, WorkOs};
+    use crate::sso::ConnectionId;
+    use crate::{ApiKey, WorkOs};
 
     use super::*;
 
