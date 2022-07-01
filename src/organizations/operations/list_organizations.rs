@@ -45,6 +45,27 @@ pub trait ListOrganizations {
     /// Retrieves a list of [`Organization`]s.
     ///
     /// [WorkOS Docs: List Organizations](https://workos.com/docs/reference/organization/list)
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use workos::WorkOsResult;
+    /// # use workos::organizations::*;
+    /// use workos::{ApiKey, WorkOs};
+    ///
+    /// # async fn run() -> WorkOsResult<(), ()> {
+    /// let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
+    ///
+    /// let paginated_organizations = workos
+    ///     .organizations()
+    ///     .list_organizations(&ListOrganizationsParams {
+    ///         domains: Some(vec!["foo-corp.com"].into()),
+    ///         ..Default::default()
+    ///     })
+    ///     .await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     async fn list_organizations(
         &self,
         params: &ListOrganizationsParams<'_>,
