@@ -77,7 +77,7 @@ impl<'a> ListConnections for Sso<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::{self, mock, Matcher};
+    use mockito::{self, Matcher};
     use serde_json::json;
     use tokio;
 
@@ -88,12 +88,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_connections_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/connections")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/connections")
             .match_query(Matcher::UrlEncoded("order".to_string(), "desc".to_string()))
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
@@ -130,6 +127,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let paginated_list = workos
             .sso()
             .list_connections(&Default::default())
@@ -144,12 +146,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_connections_endpoint_with_the_connection_type() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/connections")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/connections")
             .match_query(Matcher::UrlEncoded(
                 "connection_type".to_string(),
                 "OktaSAML".to_string(),
@@ -178,6 +177,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let paginated_list = workos
             .sso()

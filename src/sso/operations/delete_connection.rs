@@ -79,7 +79,7 @@ impl<'a> DeleteConnection for Sso<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use tokio;
 
     use crate::sso::ConnectionId;
@@ -89,15 +89,17 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_delete_connection_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("DELETE", "/connections/conn_01E2NPPCT7XQ2MVVYDHWGK1WN4")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("DELETE", "/connections/conn_01E2NPPCT7XQ2MVVYDHWGK1WN4")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(202)
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let result = workos
             .sso()

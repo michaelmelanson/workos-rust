@@ -97,7 +97,7 @@ impl<'a> ListOrganizations for Organizations<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::{self, mock, Matcher};
+    use mockito::{self, Matcher};
     use serde_json::json;
     use tokio;
 
@@ -108,12 +108,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_organizations_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/organizations")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/organizations")
             .match_query(Matcher::UrlEncoded("order".to_string(), "desc".to_string()))
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
@@ -150,6 +147,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let paginated_list = workos
             .organizations()
             .list_organizations(&Default::default())
@@ -164,12 +166,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_organizations_endpoint_with_the_domain() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/organizations")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/organizations")
             .match_query(Matcher::AllOf(vec![
                 Matcher::UrlEncoded("order".to_string(), "desc".to_string()),
                 Matcher::UrlEncoded("domains[]".to_string(), "foo-corp.com".to_string()),
@@ -203,6 +202,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let paginated_list = workos
             .organizations()

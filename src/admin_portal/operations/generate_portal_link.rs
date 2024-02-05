@@ -118,7 +118,7 @@ impl<'a> GeneratePortalLink for AdminPortal<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -129,12 +129,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_generate_portal_link_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&dbg!(mockito::server_url()))
-            .unwrap()
-            .build();
-
-        let _mock = mock("POST", "/portal/generate_link")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("POST", "/portal/generate_link")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .match_body(r#"{"organization":"org_01EHZNVPK3SFK441A1RGBFSHRT","intent":"sso"}"#)
             .with_status(201)
@@ -145,6 +142,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let GeneratePortalLinkResponse { link } = workos
             .admin_portal()

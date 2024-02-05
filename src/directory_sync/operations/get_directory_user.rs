@@ -74,7 +74,7 @@ impl<'a> GetDirectoryUser for DirectorySync<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -84,48 +84,50 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_get_directory_user_endpoint() {
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock(
+                "GET",
+                "/directory_users/directory_user_01E1JG7J09H96KYP8HM9B0G5SJ",
+            )
+            .match_header("Authorization", "Bearer sk_example_123456789")
+            .with_status(200)
+            .with_body(
+                json!({
+                  "id": "directory_user_01E1JG7J09H96KYP8HM9B0G5SJ",
+                  "idp_id": "2836",
+                  "directory_id": "directory_01ECAZ4NV9QMV47GW873HDCX74",
+                  "emails": [{
+                    "primary": true,
+                    "type": "work",
+                    "value": "marcelina@foo-corp.com"
+                  }],
+                  "first_name": "Marcelina",
+                  "last_name": "Davis",
+                  "username": "marcelina@foo-corp.com",
+                  "groups": [{
+                    "id": "",
+                    "name": "Engineering",
+                    "created_at": "2021-06-25T19:07:33.155Z",
+                    "updated_at": "2021-06-25T19:07:33.155Z",
+                    "raw_attributes": {"id": ""}
+                  }],
+                  "state": "active",
+                  "created_at": "2021-06-25T19:07:33.155Z",
+                  "updated_at": "2021-06-25T19:07:33.155Z",
+                  "custom_attributes": {
+                    "department": "Engineering"
+                  },
+                  "raw_attributes": {"department": "Engineering"}
+                })
+                .to_string(),
+            )
+            .create();
+
         let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
+            .base_url(&server.url())
             .unwrap()
             .build();
-
-        let _mock = mock(
-            "GET",
-            "/directory_users/directory_user_01E1JG7J09H96KYP8HM9B0G5SJ",
-        )
-        .match_header("Authorization", "Bearer sk_example_123456789")
-        .with_status(200)
-        .with_body(
-            json!({
-              "id": "directory_user_01E1JG7J09H96KYP8HM9B0G5SJ",
-              "idp_id": "2836",
-              "directory_id": "directory_01ECAZ4NV9QMV47GW873HDCX74",
-              "emails": [{
-                "primary": true,
-                "type": "work",
-                "value": "marcelina@foo-corp.com"
-              }],
-              "first_name": "Marcelina",
-              "last_name": "Davis",
-              "username": "marcelina@foo-corp.com",
-              "groups": [{
-                "id": "",
-                "name": "Engineering",
-                "created_at": "2021-06-25T19:07:33.155Z",
-                "updated_at": "2021-06-25T19:07:33.155Z",
-                "raw_attributes": {"id": ""}
-              }],
-              "state": "active",
-              "created_at": "2021-06-25T19:07:33.155Z",
-              "updated_at": "2021-06-25T19:07:33.155Z",
-              "custom_attributes": {
-                "department": "Engineering"
-              },
-              "raw_attributes": {"department": "Engineering"}
-            })
-            .to_string(),
-        )
-        .create();
 
         let directory_user = workos
             .directory_sync()
@@ -143,12 +145,9 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_get_directory_user_endpoint_returns_unauthorized() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/directory_users/")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/directory_users/")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(401)
             .with_body(
@@ -158,6 +157,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let result = workos
             .directory_sync()

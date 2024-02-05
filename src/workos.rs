@@ -119,8 +119,6 @@ impl<'a> WorkOsBuilder<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::mock;
-
     use super::*;
 
     #[test]
@@ -147,12 +145,9 @@ mod test {
 
     #[tokio::test]
     async fn it_sets_the_user_agent_header_on_the_client() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/health")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/health")
             .match_header(
                 "User-Agent",
                 concat!("workos-rust/", env!("CARGO_PKG_VERSION")),
@@ -160,6 +155,11 @@ mod test {
             .with_status(200)
             .with_body("User-Agent correctly set")
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let url = workos.base_url().join("/health").unwrap();
         let response = workos.client().get(url).send().await.unwrap();

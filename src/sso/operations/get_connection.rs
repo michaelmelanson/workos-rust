@@ -72,7 +72,7 @@ impl<'a> GetConnection for Sso<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -82,12 +82,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_get_connection_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/connections/conn_01E4ZCR3C56J083X43JQXF3JK5")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/connections/conn_01E4ZCR3C56J083X43JQXF3JK5")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
             .with_body(
@@ -112,6 +109,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let connection = workos
             .sso()
             .get_connection(&ConnectionId::from("conn_01E4ZCR3C56J083X43JQXF3JK5"))
@@ -126,12 +128,9 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_get_connection_endpoint_returns_unauthorized() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/connections/conn_01E4ZCR3C56J083X43JQXF3JK5")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/connections/conn_01E4ZCR3C56J083X43JQXF3JK5")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(401)
             .with_body(
@@ -141,6 +140,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let result = workos
             .sso()

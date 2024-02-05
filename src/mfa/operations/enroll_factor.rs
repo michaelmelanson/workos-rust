@@ -149,7 +149,7 @@ impl<'a> EnrollFactor for Mfa<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -160,12 +160,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_enroll_factor_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("POST", "/auth/factors/enroll")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("POST", "/auth/factors/enroll")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .match_body(r#"{"type":"totp","totp_user":"alan.turing@foo-corp.com","totp_issuer":"Foo Corp"}"#)
             .with_status(201)
@@ -186,6 +183,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let factor = workos
             .mfa()
             .enroll_factor(&EnrollFactorParams::Totp {
@@ -203,12 +205,9 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_phone_number_is_invalid() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("POST", "/auth/factors/enroll")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("POST", "/auth/factors/enroll")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .match_body(r#"{"type":"sms","phone_number":"73"}"#)
             .with_status(422)
@@ -220,6 +219,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let result = workos
             .mfa()

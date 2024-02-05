@@ -99,7 +99,7 @@ impl<'a> CreatePasswordlessSession for Passwordless<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -110,12 +110,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_create_passwordless_session_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("POST", "/passwordless/sessions")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("POST", "/passwordless/sessions")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .match_body(r#"{"type":"MagicLink","email":"marcelina@foo-corp.com"}"#)
             .with_status(201)
@@ -130,6 +127,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let passwordless_session = workos
             .passwordless()

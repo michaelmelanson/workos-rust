@@ -66,7 +66,7 @@ impl<'a> GetDirectory for DirectorySync<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -76,12 +76,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_get_directory_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
             .with_body(
@@ -99,6 +96,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let directory = workos
             .directory_sync()
             .get_directory(&DirectoryId::from("directory_01ECAZ4NV9QMV47GW873HDCX74"))
@@ -113,12 +115,9 @@ mod test {
 
     #[tokio::test]
     async fn it_returns_an_error_when_the_get_directory_endpoint_returns_unauthorized() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74")
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(401)
             .with_body(
@@ -128,6 +127,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let result = workos
             .directory_sync()

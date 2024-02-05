@@ -73,7 +73,7 @@ impl<'a> SendPasswordlessSession for Passwordless<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use serde_json::json;
     use tokio;
 
@@ -84,19 +84,21 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_send_passwordless_session_endpoint() {
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock(
+                "POST",
+                "/passwordless/sessions/passwordless_session_01EG1BHJMVYMFBQYZTTC0N73CR/send",
+            )
+            .match_header("Authorization", "Bearer sk_example_123456789")
+            .with_status(201)
+            .with_body(json!({ "success": true}).to_string())
+            .create();
+
         let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
+            .base_url(&server.url())
             .unwrap()
             .build();
-
-        let _mock = mock(
-            "POST",
-            "/passwordless/sessions/passwordless_session_01EG1BHJMVYMFBQYZTTC0N73CR/send",
-        )
-        .match_header("Authorization", "Bearer sk_example_123456789")
-        .with_status(201)
-        .with_body(json!({ "success": true}).to_string())
-        .create();
 
         let result = workos
             .passwordless()

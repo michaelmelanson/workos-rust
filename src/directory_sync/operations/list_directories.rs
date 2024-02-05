@@ -83,7 +83,7 @@ impl<'a> ListDirectories for DirectorySync<'a> {
 
 #[cfg(test)]
 mod test {
-    use mockito::{self, mock, Matcher};
+    use mockito::{self, Matcher};
     use serde_json::json;
     use tokio;
 
@@ -94,12 +94,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_directories_endpoint() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/directories")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/directories")
             .match_query(Matcher::UrlEncoded("order".to_string(), "desc".to_string()))
             .match_header("Authorization", "Bearer sk_example_123456789")
             .with_status(200)
@@ -137,6 +134,11 @@ mod test {
             )
             .create();
 
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
+
         let paginated_list = workos
             .directory_sync()
             .list_directories(&Default::default())
@@ -151,12 +153,9 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_list_directories_endpoint_with_the_directory_type() {
-        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
-            .unwrap()
-            .build();
-
-        let _mock = mock("GET", "/directories")
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock("GET", "/directories")
             .match_query(Matcher::UrlEncoded(
                 "directory_type".to_string(),
                 "gsuite directory".to_string(),
@@ -185,6 +184,11 @@ mod test {
                 .to_string(),
             )
             .create();
+
+        let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
+            .base_url(&server.url())
+            .unwrap()
+            .build();
 
         let paginated_list = workos
             .directory_sync()

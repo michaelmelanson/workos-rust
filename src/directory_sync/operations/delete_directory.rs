@@ -79,7 +79,7 @@ impl<'a> DeleteDirectory for DirectorySync<'a> {
 #[cfg(test)]
 mod test {
     use matches::assert_matches;
-    use mockito::{self, mock};
+    use mockito::{self};
     use tokio;
 
     use crate::directory_sync::DirectoryId;
@@ -89,18 +89,20 @@ mod test {
 
     #[tokio::test]
     async fn it_calls_the_delete_directory_endpoint() {
+        let mut server = mockito::Server::new_async().await;
+        server
+            .mock(
+                "DELETE",
+                "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74",
+            )
+            .match_header("Authorization", "Bearer sk_example_123456789")
+            .with_status(202)
+            .create();
+
         let workos = WorkOs::builder(&ApiKey::from("sk_example_123456789"))
-            .base_url(&mockito::server_url())
+            .base_url(&server.url())
             .unwrap()
             .build();
-
-        let _mock = mock(
-            "DELETE",
-            "/directories/directory_01ECAZ4NV9QMV47GW873HDCX74",
-        )
-        .match_header("Authorization", "Bearer sk_example_123456789")
-        .with_status(202)
-        .create();
 
         let result = workos
             .directory_sync()
