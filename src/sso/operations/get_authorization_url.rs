@@ -1,11 +1,15 @@
 use url::{ParseError, Url};
 
 use crate::organizations::OrganizationId;
-use crate::sso::{ClientId, ConnectionId, Sso};
+use crate::sso::{ConnectionId, Sso};
+use crate::ClientId;
 
 /// An OAuth provider to use for Single Sign-On (SSO).
 #[derive(Debug)]
 pub enum Provider {
+    /// Sign in with Authkit.
+    Authkit,
+
     /// Sign in with Google OAuth.
     GoogleOauth,
 
@@ -55,7 +59,7 @@ pub trait GetAuthorizationUrl {
     /// ```
     /// # use url::ParseError;
     /// # use workos::sso::*;
-    /// use workos::{ApiKey, WorkOs};
+    /// use workos::{ApiKey, ClientId, WorkOs};
     ///
     /// # fn run() -> Result<(), ParseError> {
     /// let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
@@ -99,6 +103,7 @@ impl<'a> GetAuthorizationUrl for Sso<'a> {
                 ConnectionSelector::Provider(provider) => (
                     "provider",
                     match provider {
+                        Provider::Authkit => "authkit".to_string(),
                         Provider::GoogleOauth => "GoogleOAuth".to_string(),
                         Provider::MicrosoftOauth => "MicrosoftOAuth".to_string(),
                     },

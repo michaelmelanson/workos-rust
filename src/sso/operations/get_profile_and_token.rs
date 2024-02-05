@@ -3,8 +3,8 @@ use reqwest::{Response, StatusCode};
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::sso::{AccessToken, AuthorizationCode, ClientId, Profile, Sso};
-use crate::{WorkOsError, WorkOsResult};
+use crate::sso::{AccessToken, Profile, Sso};
+use crate::{AuthorizationCode, ClientId, WorkOsError, WorkOsResult};
 
 /// The parameters for [`GetProfileAndToken`].
 #[derive(Debug)]
@@ -80,7 +80,7 @@ pub trait GetProfileAndToken {
     /// ```
     /// # use workos::WorkOsResult;
     /// # use workos::sso::*;
-    /// use workos::{ApiKey, WorkOs};
+    /// use workos::{ApiKey, AuthorizationCode, ClientId, WorkOs};
     ///
     /// # async fn run() -> WorkOsResult<(), GetProfileAndTokenError> {
     /// let workos = WorkOs::new(&ApiKey::from("sk_example_123456789"));
