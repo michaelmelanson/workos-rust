@@ -42,6 +42,9 @@ pub struct User {
     /// Whether the user's email address has been verified.
     pub email_verified: bool,
 
+    /// The user's profile picture URL.
+    pub profile_picture_url: Option<String>,
+
     /// The date and time the user was created.
     pub created_at: String,
 
